@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-
-
+from sklearn import preprocessing
 
 
 class Test:
@@ -38,15 +37,16 @@ class Test:
         return array
 
     def gradient_step(self, learning_rate: float, error: np.ndarray, cols: int, rows: int, X: np.ndarray) -> np.ndarray:
-        s = (np.dot(error.T, X)).reshape(cols, 1)
-        delta_W = 2 * (learning_rate * s / rows).reshape(cols, 1)
+        s = (np.dot(error.T, X)).T
+        # s = s.reshape(cols, 1)
+        delta_W = 2 * (learning_rate * s / rows)#.reshape(cols, 1)
         return self.W - delta_W
 
     def cost(self, Y: np.ndarray, Y_pred: np.ndarray) -> float:
         rows, _ = Y.shape
         return np.sum((Y - Y_pred) ** 2) / rows
 
-    def fit(self, learning_rate=0.00005, accuracy=0.00001):
+    def fit(self, learning_rate=0.000006, accuracy=0.000001):
         Y_pred = np.dot(self.X, self.W)
         cost0 = self.cost(self.Y, Y_pred)
 
@@ -73,9 +73,16 @@ class Test:
     def predict(self, X: np.ndarray):
         return np.dot(X, self.W)
 
+
 if __name__ == '__main__':
     data = pd.read_csv('data.csv', sep=',')
+
+    # Normalize data
+    # data = ((data - data.min()) / (data.max() - data.min()))
+
     linear = Test(data=data, independent_names=['km'], target_name='price')
-    weights = linear.fit()
+    weights = linear.fit(learning_rate=0.00006)
     print(weights.tolist())
-    print(linear.predict(np.array([1, 240000])).tolist())
+    print(linear.predict(np.array([1, 150500]).reshape(1,2)).tolist())
+
+# -0.02145*X + 8500
