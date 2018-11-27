@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-from sklearn import preprocessing
+from sklearn.linear_model import LinearRegression
+import pdb
 
 
 class Test:
@@ -20,6 +21,9 @@ class Test:
             self.Y = data.iloc[:, -1].values
         # add column with ones to independent var matrix
         self.Y = self.Y.reshape(len(self.Y), 1)
+
+        self.raw_X = self.X
+
         self.X = self._stack_ones(self.X)
         _, cols = self.X.shape
         self.W = self.get_initial_weights(amount=cols, shape=(cols, 1))
@@ -36,35 +40,50 @@ class Test:
         array = np.array(flat_list, dtype=float).reshape(shape)
         return array
 
-    def gradient_step(self, learning_rate: float, error: np.ndarray, cols: int, rows: int, X: np.ndarray) -> np.ndarray:
-        s = (np.dot(error.T, X)).T
-        print('s = ', s)
-        print('rows = ', rows)
-        # s = s.reshape(cols, 1)
-        delta_W = 2 * (learning_rate * s / rows)#.reshape(cols, 1)
+    def gradient_step(self, learning_rate: float, error: np.ndarray, rows: int, X: np.ndarray) -> np.ndarray:
+        s = np.dot(error.T, X).T
+
+        # s = X.T.dot(error)
+        delta_W = 2 * (learning_rate * s / rows)
         return self.W - delta_W
 
-    def cost(self, Y: np.ndarray, Y_pred: np.ndarray) -> float:
+    # def gradient_step(self, learning_rate: float, error: np.ndarray, rows: int, X: np.ndarray) -> np.ndarray:
+    #     # pdb.set_trace()
+    #     s = np.dot(error.T, X[:, 1]).T
+    #     # s = X.T.dot(error)
+    #     delta_W_b = 2 * (learning_rate * error[:, 0] / rows)
+    #     delta_W_x = 2 * (learning_rate * s / rows)
+    #     return self.W[0] - delta_W_b, self.W[1] - delta_W_x
+
+
+    @staticmethod
+    def cost(Y: np.ndarray, Y_pred: np.ndarray) -> float:
         rows, _ = Y.shape
-        print(Y, Y_pred)
-        return np.sum((Y - Y_pred) ** 2) / rows
+        error = np.square(Y_pred - Y)
+        mean_error = np.sum(error) / rows
+        return mean_error
 
-    def fit(self,
-            learning_rate=0.000006,
-
-            accuracy=0.000001):
+    def fit(self, learning_rate=0.000006, accuracy=0.0001):
         Y_pred = np.dot(self.X, self.W)
         cost0 = self.cost(self.Y, Y_pred)
 
+        # i = 0
         while True:
             error = Y_pred - self.Y
             temp_W = self.W
             rows, cols = self.X.shape
-            self.W = self.gradient_step(learning_rate, error, cols, rows, self.X)
+
+            self.W = self.gradient_step(learning_rate, error, rows, self.X)
+
             Y_pred = np.dot(self.X, self.W)
             cost1 = self.cost(self.Y, Y_pred)
             current_accuracy = abs(cost1 - cost0)
-            if cost1 > cost0 and False:
+
+            # if i == 0:
+            #     i += 1
+            #     continue
+
+            if cost1 > cost0:
                 self.W = temp_W
                 print('bad')
                 break
@@ -75,6 +94,11 @@ class Test:
             cost0 = cost1
 
         return self.W
+
+    def fit_sklearn(self):
+        self.reg = LinearRegression().fit(self.raw_X, self.Y)
+        print(self.reg.intercept_, self.reg.coef_)
+        print(self.reg.predict(np.array([150500]).reshape(1, -1)))
 
     def predict(self, X: np.ndarray):
         return np.dot(X, self.W)
@@ -88,8 +112,9 @@ if __name__ == '__main__':
 
     linear = Test(data=data, independent_names=['km'], target_name='price')
     #weights = linear.fit(learning_rate=0.00000000006)
-    weights = linear.fit(learning_rate=0.06)
+    weights = linear.fit(learning_rate=0.0001)
     print(weights.tolist())
-    print(linear.predict(np.array([1, 150500]).reshape(1,2)).tolist())
+    print(linear.predict(np.array([1, 22899]).reshape(1,2)).tolist())
+    # linear.fit_sklearn()
 
 # -0.02145*X + 8500
