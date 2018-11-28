@@ -19,10 +19,17 @@ class Test:
         else:
             self.X = data.iloc[:, :-1].values
             self.Y = data.iloc[:, -1].values
+
         # add column with ones to independent var matrix
         self.Y = self.Y.reshape(len(self.Y), 1)
 
         self.raw_X = self.X
+        self.raw_Y = self.Y
+
+        self.X = self.X.astype('float64')
+        self.Y = self.Y.astype('float64')
+
+        self.X, self.Y = self._preprocess_data(self.X, self.Y)
 
         self.X = self._stack_ones(self.X)
         _, cols = self.X.shape
@@ -37,6 +44,7 @@ class Test:
     @staticmethod
     def get_initial_weights(amount: int, shape: tuple) -> np.ndarray:
         flat_list = [0.0 for elem in range(amount)]
+        flat_list = [8000, -0.2]
         array = np.array(flat_list, dtype=float).reshape(shape)
         return array
 
@@ -57,18 +65,30 @@ class Test:
 
 
     @staticmethod
+    def _preprocess_data(X, y):
+        y = np.asarray(y, dtype=X.dtype)
+        X_offset = np.average(X, axis=0, weights=None)
+        X -= X_offset
+        X_scale = np.ones(X.shape[1], dtype=X.dtype)
+
+        y_offset = np.average(y, axis=0, weights=None)
+        y = y - y_offset
+
+        return X, y#, X_offset, y_offset, X_scale
+
+    @staticmethod
     def cost(Y: np.ndarray, Y_pred: np.ndarray) -> float:
         rows, _ = Y.shape
         error = np.square(Y_pred - Y)
         mean_error = np.sum(error) / rows
         return mean_error
 
-    def fit(self, learning_rate=0.000006, accuracy=0.0001):
+    def fit(self, learning_rate=0.000006, accuracy=0.0000000001):
         Y_pred = np.dot(self.X, self.W)
         cost0 = self.cost(self.Y, Y_pred)
 
-        # i = 0
-        while True:
+        i = 0
+        while True and i < 1000000:
             error = Y_pred - self.Y
             temp_W = self.W
             rows, cols = self.X.shape
@@ -91,12 +111,15 @@ class Test:
                 print('good')
                 break
 
+            i += 1
+            print(self.W)
             cost0 = cost1
 
         return self.W
 
     def fit_sklearn(self):
-        self.reg = LinearRegression().fit(self.raw_X, self.Y)
+        self.reg = LinearRegression().fit(self.raw_X, self.raw_Y)
+        print('SKLEARN')
         print(self.reg.intercept_, self.reg.coef_)
         print(self.reg.predict(np.array([150500]).reshape(1, -1)))
 
@@ -112,7 +135,7 @@ if __name__ == '__main__':
 
     linear = Test(data=data, independent_names=['km'], target_name='price')
     #weights = linear.fit(learning_rate=0.00000000006)
-    weights = linear.fit(learning_rate=0.0001)
+    weights = linear.fit(learning_rate=0.0000001)
     print(weights.tolist())
     print(linear.predict(np.array([1, 22899]).reshape(1,2)).tolist())
     # linear.fit_sklearn()
