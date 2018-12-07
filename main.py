@@ -44,7 +44,7 @@ class Test:
     @staticmethod
     def get_initial_weights(amount: int, shape: tuple) -> np.ndarray:
         flat_list = [0.0 for elem in range(amount)]
-        flat_list = [8000, -0.2]
+        # flat_list = [8000, -0.02]
         array = np.array(flat_list, dtype=float).reshape(shape)
         return array
 
@@ -107,7 +107,7 @@ class Test:
                 self.W = temp_W
                 print('bad')
                 break
-            elif current_accuracy <= accuracy:
+            if current_accuracy <= accuracy:
                 print('good')
                 break
 
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     #weights = linear.fit(learning_rate=0.00000000006)
     weights = linear.fit(learning_rate=0.0000001)
     print(weights.tolist())
-    print(linear.predict(np.array([1, 22899]).reshape(1,2)).tolist())
+    print(linear.predict(np.array([1, 61789]).reshape(1,2)).tolist())
     # linear.fit_sklearn()
 
 # -0.02145*X + 8500
