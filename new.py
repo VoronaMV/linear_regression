@@ -16,7 +16,7 @@ def gradient(Y, X, theta, learning_rate=0.1):
     delta_theta = learning_rate * tmp / 2 / len(loss)
     return theta - delta_theta
 
-
+# ((X - X.min()) / (X.max() - X.min()))
 if __name__ == '__main__':
     data = np.loadtxt('data.csv', skiprows=1, delimiter=',')
 
